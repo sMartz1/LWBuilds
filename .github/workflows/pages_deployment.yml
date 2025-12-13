@@ -51,7 +51,7 @@ jobs:
       - name: 🔔 Notificar a Discord sobre el Estado de la Compilación
         # El 'if: always()' asegura que esta notificación se envíe sin importar si el despliegue falló o tuvo éxito.
         if: always() 
-        uses: rjstone/discord-webhook-notify@v2.7.1
+        uses: rjstone/discord-webhook-notify@v2
         with:
           # **ATENCIÓN:** DEBES haber creado este secreto en el Paso 3 del punto 3
           webhookUrl: ${{ secrets.DISCORD_WEBHOOK_URL }}
