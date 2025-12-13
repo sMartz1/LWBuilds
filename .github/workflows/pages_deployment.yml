@@ -47,31 +47,28 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
-# 3. Paso de Notificación a Discord (Versión Final con Usuario y URL)
+# 3. Paso de Notificación a Discord (Versión Final con EMBED COMPLETO)
       - name: 🔔 Notificar a Discord sobre el Estado de la Compilación
         if: always() 
         uses: rjstone/discord-webhook-notify@v2
         with:
           webhookUrl: ${{ secrets.DISCORD_WEBHOOK_URL }}
           
-          # CRUCIAL: Usamos 'text' para el cuerpo principal del mensaje
-          text: |
-            **📢 NOTIFICACIÓN DE DESPLIEGUE**
-            
+          # ELIMINAMOS 'text' para que la acción fuerce el uso del EMBED.
+          
+          # TÍTULO: Usamos el título para la cabecera del Embed
+          title: "📢 NOTIFICACIÓN DE DESPLIEGUE - (${{ job.status }})"
+          
+          # DESCRIPCIÓN: Contenido principal del Embed (Estado y Usuario)
+          description: |
             **Estado:** ${{ job.status == 'success' && '✅ Despliegue Exitoso' || '❌ Despliegue Fallido' }}
             **Iniciado por:** **`${{ github.actor }}`** 👤
             
-          # El título del embed (opcional, pero mejora el formato)
-          title: "Despliegue de Pages Completado (${{ github.ref_name }})"
-          
-          # La descripción del embed
-          description: "Enlaces de interés:"
-            
-          # El footer para incluir el URL del sitio y otros detalles
+          # FOOTER: Incluye los enlaces (ahora se renderizará correctamente dentro del Embed)
           footer: |
             🔗 URL de Pages: https://smartz1.github.io/LWBuilds/
             Detalles del Job: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
             
-          # El color basado en el estado
-          color: ${{ job.status == 'success' && '00FF00' || 'FF0000' }} # Verde o Rojo
+          # COLOR: Basado en el estado
+          color: ${{ job.status == 'success' && '00FF00' || 'FF0000' }}
           username: GitHub Pages Deployer
