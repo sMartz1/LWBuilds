@@ -47,31 +47,34 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
-# 3. Paso de Notificación a Discord (Cambiando a acción más robusta)
+# 3. Paso de Notificación a Discord (Cambiando a acción muy popular)
       - name: 🔔 Notificar a Discord sobre el Estado de la Compilación
         if: always() 
-        # CAMBIO DE ACCIÓN: Usamos tsick-7/discord-webhook-action@v2
-        uses: tsick-7/discord-webhook-action@v2 
+        # ACCIÓN POPULAR Y ESTABLE PARA EMBEDS DE DISCORD
+        uses: appleboy/discord-action@master 
         with:
-          webhook-url: ${{ secrets.DISCORD_WEBHOOK_URL }} # Nota: El nombre del input cambió a 'webhook-url'
+          # Nombre del input para la URL (muy simple)
+          webhook_id: ${{ secrets.DISCORD_WEBHOOK_URL_ID }} # Necesitarás separar ID/Token
+          webhook_token: ${{ secrets.DISCORD_WEBHOOK_URL_TOKEN }}
           
-          # La nueva acción usa 'content' como texto principal, lo usaremos para un mensaje directo
-          content: 'Despliegue de GitHub Pages ha finalizado.'
+          # NOTA IMPORTANTE: Esta acción usa ID y TOKEN separados.
+          # Si tienes la URL completa, usa el input 'webhook_id' con la URL completa 
+          # si el formato de la URL es compatible, o separa los campos como se recomienda abajo.
           
-          # --- Configuración del Embed ---
-          # La nueva acción acepta un JSON de Embed directo, lo que es mucho más seguro
-          embed: |
+          # Mensaje de texto simple (para evitar el error "Cannot send an empty message")
+          message: 'El despliegue ha finalizado. Revisar el Embed a continuación.'
+
+          # Formato del Embed (basado en JSON)
+          embeds: |
             [
               {
                 "title": "📢 NOTIFICACIÓN DE DESPLIEGUE - ${{ job.status }}",
                 "description": "**Estado:** ${{ job.status == 'success' && '✅ Despliegue Exitoso' || '❌ Despliegue Fallido' }}\n**Iniciado por:** **`${{ github.actor }}`** 👤",
-                "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
-                "color": ${{ job.status == 'success' && '65280' || '16711680' }}, # 00FF00 en decimal es 65280, FF0000 es 16711680
+                "url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+                "color": ${{ job.status == 'success' && '65280' || '16711680' }}, 
                 "footer": {
                   "text": "🔗 URL de Pages: https://smartz1.github.io/LWBuilds/"
-                }
+                },
+                "timestamp": "${{ github.event.head_commit.timestamp }}"
               }
             ]
-          
-          username: GitHub Pages Deployer
-          avatar-url: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png # Nota: el input cambió a 'avatar-url'
