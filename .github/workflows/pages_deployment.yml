@@ -47,28 +47,28 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
+# 3. Paso de Notificación a Discord (Versión 3 - Final)
       - name: 🔔 Notificar a Discord sobre el Estado de la Compilación
         if: always() 
         uses: rjstone/discord-webhook-notify@v2
         with:
           webhookUrl: ${{ secrets.DISCORD_WEBHOOK_URL }}
           
-          # Usamos 'title' y 'description' que son inputs válidos y aseguran que el mensaje no esté vacío
-          title: |
-            ✅ DESPLIEGUE EXITOSO DE PAGES
-          
-          description: |
-            **Estado:** ${{ job.status }}
+          # ¡CRUCIAL! Usamos 'text' para garantizar que el mensaje NO esté vacío.
+          text: |
+            **📢 NOTIFICACIÓN DE DESPLIEGUE**
+            
+            **Estado:** ✅ Despliegue Exitoso
             Repositorio: `sMartz1/LWBuilds`
             Rama: `${{ github.ref_name }}`
-            
-          # El footer es opcional, pero añade información útil
-          footer: |
-            Ver Despliegue: https://smartz1.github.io/LWBuilds/
-            Ver Detalles del Job: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            
-          # El color basado en el estado (si tiene éxito, rojo si falla)
-          color: ${{ job.status == 'success' && '00FF00' || 'FF0000' }}
           
-          username: Notification (Github Actions)
-          avatarUrl: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
+          # Usaremos 'description' y 'title' para crear un embed dentro del mensaje
+          title: "Despliegue de Pages Completado (${{ job.status }})"
+          description: "Revisa los enlaces a continuación:"
+            
+          footer: |
+            Ver Sitio: https://smartz1.github.io/LWBuilds/
+            Ver Job: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            
+          color: ${{ job.status == 'success' && '00FF00' || 'FF0000' }}
+          username: GitHub Pages Deployer
