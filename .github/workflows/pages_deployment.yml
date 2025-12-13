@@ -31,11 +31,11 @@ jobs:
       - name: 🛠️ Configurar Páginas de GitHub
         uses: actions/configure-pages@v5
 
-      # Si tu sitio es estático (solo HTML/CSS/JS) no necesitas un paso de build.
-      # Si usas Jekyll, Hugo, etc., aquí iría tu paso de build.
+      # Si usas un generador estático (como Jekyll, Hugo, etc.), aquí iría tu paso de build.
+      # Si solo son archivos estáticos (HTML/CSS/JS), este paso no es necesario.
       # Ejemplo:
-      # - name: 🏗️ Compilar Sitio (Si usas un generador estático)
-      #   run: npm run build # o tu comando de build
+      # - name: 🏗️ Compilar Sitio
+      #   run: npm run build 
 
       - name: 📦 Subir Artefacto
         uses: actions/upload-pages-artifact@v3
@@ -47,32 +47,29 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
-      # 3. Paso de Notificación a Discord (Solución Definitiva)
+      # 3. Paso de Notificación a Discord (Usando sarisia/actions-status-discord)
       - name: 🔔 Notificar a Discord sobre el Estado de la Compilación
         if: always() 
-        uses: appleboy/discord-action@master 
+        uses: sarisia/actions-status-discord@v1
         with:
-          # ¡CRUCIAL! La acción requiere el ID y el Token por separado.
-          # Asegúrate de haber creado los secretos DISCORD_WEBHOOK_ID y DISCORD_WEBHOOK_TOKEN.
-          webhook_id: ${{ secrets.DISCORD_WEBHOOK_ID }} 
-          webhook_token: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
+          # Usamos la URL completa del webhook. Asegúrate de que el secreto existe.
+          webhook: ${{ secrets.DISCORD_WEBHOOK_URL }} 
+          status: ${{ job.status }}
           
-          # Mensaje de texto simple (para evitar el error "empty message")
-          message: 'El despliegue ha finalizado. Revisar el Embed para los detalles.'
-
-          # Usamos 'args' para el JSON del Embed (el formato correcto para esta acción)
-          args: |
-            [
-              {
-                "title": "📢 NOTIFICACIÓN DE DESPLIEGUE - ${{ job.status }}",
-                "description": "**Estado:** ${{ job.status == 'success' && '✅ Despliegue Exitoso' || '❌ Despliegue Fallido' }}\n**Iniciado por:** **`${{ github.actor }}`** 👤",
-                "color": "${{ job.status == 'success' && '#65280' || '#16711680' }}", 
-                "footer": {
-                  "text": "🔗 URL de Pages: <https://smartz1.github.io/LWBuilds/> | Detalles del Job: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}>"
-                },
-                "timestamp": "${{ github.event.head_commit.timestamp }}"
-              }
-            ]
+          # Título del Embed
+          title: "🚀 Despliegue de LWBuilds: ${{ job.status }}"
           
+          # Contenido principal del Embed (Usuario y Enlaces)
+          description: |
+            **Iniciado por:** **`${{ github.actor }}`** 👤
+            
+            ---
+            
+            **Enlaces:**
+            
+            - URL de Pages: <https://smartz1.github.io/LWBuilds/>
+            - Detalles del Job: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}>
+          
+          # Color dinámico (en formato hexadecimal 0x)
+          color: ${{ job.status == 'success' && '0x00FF00' || '0xFF0000' }}
           username: GitHub Pages Deployer
-          avatar_url: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
