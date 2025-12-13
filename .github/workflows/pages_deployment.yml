@@ -40,25 +40,27 @@ jobs:
       - name: 📦 Subir Artefacto
         uses: actions/upload-pages-artifact@v3
         with:
-          # Directorio donde están tus archivos de sitio final (ej. `_site`, `public`, o la raíz si es estático)
+          # Directorio donde están tus archivos de sitio final
           path: '.' 
 
       - name: 🚀 Desplegar a GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
 
-# 3. Paso de Notificación a Discord (Versión Final con 'appleboy' y URL completa)
+      # 3. Paso de Notificación a Discord (Solución Definitiva)
       - name: 🔔 Notificar a Discord sobre el Estado de la Compilación
         if: always() 
         uses: appleboy/discord-action@master 
         with:
-          # Usamos la URL completa para evitar problemas de ID/Token
-          webhook_url: ${{ secrets.DISCORD_WEBHOOK_FULL_URL }}
+          # ¡CRUCIAL! La acción requiere el ID y el Token por separado.
+          # Asegúrate de haber creado los secretos DISCORD_WEBHOOK_ID y DISCORD_WEBHOOK_TOKEN.
+          webhook_id: ${{ secrets.DISCORD_WEBHOOK_ID }} 
+          webhook_token: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
           
-          # Mensaje de texto simple (necesario para la acción)
+          # Mensaje de texto simple (para evitar el error "empty message")
           message: 'El despliegue ha finalizado. Revisar el Embed para los detalles.'
 
-          # ¡CRUCIAL! Usamos 'args' como el input para el JSON del Embed en esta acción
+          # Usamos 'args' para el JSON del Embed (el formato correcto para esta acción)
           args: |
             [
               {
