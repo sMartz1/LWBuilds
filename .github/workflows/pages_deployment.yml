@@ -64,12 +64,15 @@ jobs:
           args: |
             [
               {
-                "title": "📢 NOTIFICACIÓN DE DESPLIEGUE! - ${{ job.status }}",
+                "title": "📢 NOTIFICACIÓN DE DESPLIEGUE - ${{ job.status }}",
                 "description": "**Estado:** ${{ job.status == 'success' && '✅ Despliegue Exitoso' || '❌ Despliegue Fallido' }}\n**Iniciado por:** **`${{ github.actor }}`** 👤",
-                "url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+                
+                # ¡ELIMINAR ESTA LÍNEA!
+                # "url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}", 
+                
                 "color": ${{ job.status == 'success' && '65280' || '16711680' }}, 
                 "footer": {
-                  "text": "🔗 URL de Pages: https://smartz1.github.io/LWBuilds/"
+                  "text": "🔗 URL de Pages: https://smartz1.github.io/LWBuilds/ | Detalles del Job: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
                 },
                 "timestamp": "${{ github.event.head_commit.timestamp }}"
               }
