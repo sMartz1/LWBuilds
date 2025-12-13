@@ -47,28 +47,31 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
-# 3. Paso de Notificación a Discord (Versión Final con EMBED COMPLETO)
+# 3. Paso de Notificación a Discord (Cambiando a acción más robusta)
       - name: 🔔 Notificar a Discord sobre el Estado de la Compilación
         if: always() 
-        uses: rjstone/discord-webhook-notify@v2
+        # CAMBIO DE ACCIÓN: Usamos tsick-7/discord-webhook-action@v2
+        uses: tsick-7/discord-webhook-action@v2 
         with:
-          webhookUrl: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK_URL }} # Nota: El nombre del input cambió a 'webhook-url'
           
-          # ELIMINAMOS 'text' para que la acción fuerce el uso del EMBED.
+          # La nueva acción usa 'content' como texto principal, lo usaremos para un mensaje directo
+          content: 'Despliegue de GitHub Pages ha finalizado.'
           
-          # TÍTULO: Usamos el título para la cabecera del Embed
-          title: "📢 NOTIFICACIÓN DE DESPLIEGUE - (${{ job.status }})"
+          # --- Configuración del Embed ---
+          # La nueva acción acepta un JSON de Embed directo, lo que es mucho más seguro
+          embed: |
+            [
+              {
+                "title": "📢 NOTIFICACIÓN DE DESPLIEGUE - ${{ job.status }}",
+                "description": "**Estado:** ${{ job.status == 'success' && '✅ Despliegue Exitoso' || '❌ Despliegue Fallido' }}\n**Iniciado por:** **`${{ github.actor }}`** 👤",
+                "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+                "color": ${{ job.status == 'success' && '65280' || '16711680' }}, # 00FF00 en decimal es 65280, FF0000 es 16711680
+                "footer": {
+                  "text": "🔗 URL de Pages: https://smartz1.github.io/LWBuilds/"
+                }
+              }
+            ]
           
-          # DESCRIPCIÓN: Contenido principal del Embed (Estado y Usuario)
-          description: |
-            **Estado:** ${{ job.status == 'success' && '✅ Despliegue Exitoso' || '❌ Despliegue Fallido' }}
-            **Iniciado por:** **`${{ github.actor }}`** 👤
-            
-          # FOOTER: Incluye los enlaces (ahora se renderizará correctamente dentro del Embed)
-          footer: |
-            🔗 URL de Pages: https://smartz1.github.io/LWBuilds/
-            Detalles del Job: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            
-          # COLOR: Basado en el estado
-          color: ${{ job.status == 'success' && '00FF00' || 'FF0000' }}
           username: GitHub Pages Deployer
+          avatar-url: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png # Nota: el input cambió a 'avatar-url'
