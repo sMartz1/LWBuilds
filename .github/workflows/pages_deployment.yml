@@ -47,24 +47,19 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
-# 3. Paso de Notificación a Discord (Cambiando a acción muy popular)
+# 3. Paso de Notificación a Discord (Versión Final con 'appleboy' y URL completa)
       - name: 🔔 Notificar a Discord sobre el Estado de la Compilación
         if: always() 
-        # ACCIÓN POPULAR Y ESTABLE PARA EMBEDS DE DISCORD
         uses: appleboy/discord-action@master 
         with:
-          webhook_id: ${{ secrets.DISCORD_WEBHOOK_ID }}
-          webhook_token: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
+          # Usamos la URL completa para evitar problemas de ID/Token
+          webhook_url: ${{ secrets.DISCORD_WEBHOOK_FULL_URL }}
           
-          # NOTA IMPORTANTE: Esta acción usa ID y TOKEN separados.
-          # Si tienes la URL completa, usa el input 'webhook_id' con la URL completa 
-          # si el formato de la URL es compatible, o separa los campos como se recomienda abajo.
-          
-          # Mensaje de texto simple (para evitar el error "Cannot send an empty message")
-          message: 'El despliegue ha finalizado. Revisar el Embed a continuación.'
+          # Mensaje de texto simple (necesario para la acción)
+          message: 'El despliegue ha finalizado. Revisar el Embed para los detalles.'
 
-          # Formato del Embed (basado en JSON)
-          embeds: |
+          # ¡CRUCIAL! Usamos 'args' como el input para el JSON del Embed en esta acción
+          args: |
             [
               {
                 "title": "📢 NOTIFICACIÓN DE DESPLIEGUE - ${{ job.status }}",
@@ -77,3 +72,6 @@ jobs:
                 "timestamp": "${{ github.event.head_commit.timestamp }}"
               }
             ]
+          
+          username: GitHub Pages Deployer
+          avatar_url: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
