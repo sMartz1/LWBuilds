@@ -47,20 +47,28 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
-      # 3. Paso de Notificación a Discord (CRUCIAL para solucionar tu problema)
       - name: 🔔 Notificar a Discord sobre el Estado de la Compilación
-        # El 'if: always()' asegura que esta notificación se envíe sin importar si el despliegue falló o tuvo éxito.
         if: always() 
         uses: rjstone/discord-webhook-notify@v2
         with:
-          # **ATENCIÓN:** DEBES haber creado este secreto en el Paso 3 del punto 3
           webhookUrl: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          status: ${{ job.status }}
-          # Personaliza el mensaje con el estado y los enlaces
+          
+          # Usamos 'title' y 'description' que son inputs válidos y aseguran que el mensaje no esté vacío
+          title: |
+            ✅ DESPLIEGUE EXITOSO DE PAGES
+          
           description: |
-            **Estado del Despliegue de Pages:** **`${{ job.status }}`**
+            **Estado:** ${{ job.status }}
             Repositorio: `sMartz1/LWBuilds`
             Rama: `${{ github.ref_name }}`
-            Ver Despliegue: ${{ steps.deployment.outputs.page_url }}
+            
+          # El footer es opcional, pero añade información útil
+          footer: |
+            Ver Despliegue: https://smartz1.github.io/LWBuilds/
             Ver Detalles del Job: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          color: ${{ job.status == 'success' && '00FF00' || job.status == 'failure' && 'FF0000' || 'FFFF00' }}
+            
+          # El color basado en el estado (si tiene éxito, rojo si falla)
+          color: ${{ job.status == 'success' && '00FF00' || 'FF0000' }}
+          
+          username: Notification (Github Actions)
+          avatarUrl: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
