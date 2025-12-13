@@ -68,7 +68,6 @@ jobs:
             **Enlaces:**
             
             - URL de Pages: <https://smartz1.github.io/LWBuilds/>
-            - Detalles del Job: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}>
           
           # Color dinámico (en formato hexadecimal 0x)
           color: ${{ job.status == 'success' && '0x00FF00' || '0xFF0000' }}
