@@ -66,9 +66,12 @@ jobs:
               {
                 "title": "📢 NOTIFICACIÓN DE DESPLIEGUE - ${{ job.status }}",
                 "description": "**Estado:** ${{ job.status == 'success' && '✅ Despliegue Exitoso' || '❌ Despliegue Fallido' }}\n**Iniciado por:** **`${{ github.actor }}`** 👤",
+                "color": ${{ job.status == 'success' && '65280' || '16711680' }}, 
                 "footer": {
-                  "text": "🔗 URL de Pages: https://smartz1.github.io/LWBuilds/ | Detalles del Job: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                  # ¡SOLUCIÓN! ENVOLVER AMBOS ENLACES EN CORCHETES ANGULARES (< >)
+                  "text": "🔗 URL de Pages: <https://smartz1.github.io/LWBuilds/> | Detalles del Job: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}>"
                 },
+                "timestamp": "${{ github.event.head_commit.timestamp }}"
               }
             ]
           
