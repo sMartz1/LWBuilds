@@ -53,9 +53,8 @@ jobs:
         # ACCIÓN POPULAR Y ESTABLE PARA EMBEDS DE DISCORD
         uses: appleboy/discord-action@master 
         with:
-          # Nombre del input para la URL (muy simple)
-          webhook_id: ${{ secrets.DISCORD_WEBHOOK_URL_ID }} # Necesitarás separar ID/Token
-          webhook_token: ${{ secrets.DISCORD_WEBHOOK_URL_TOKEN }}
+          webhook_id: ${{ secrets.DISCORD_WEBHOOK_ID }}
+          webhook_token: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
           
           # NOTA IMPORTANTE: Esta acción usa ID y TOKEN separados.
           # Si tienes la URL completa, usa el input 'webhook_id' con la URL completa 
