@@ -1,0 +1,66 @@
+name: 🚀 Despliegue de GitHub Pages y Notificación a Discord
+
+# 1. Definir los eventos que disparan este workflow
+on:
+  push:
+    branches:
+      - main # Dispara el workflow cuando se haga push a la rama 'main'
+
+  # Permite ejecutar este workflow manualmente desde la pestaña Actions
+  workflow_dispatch:
+
+# 2. Definir los trabajos (jobs)
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    
+    # Define los permisos necesarios para el despliegue de Pages
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: ⬇️ Checkout del Código
+        uses: actions/checkout@v4
+
+      - name: 🛠️ Configurar Páginas de GitHub
+        uses: actions/configure-pages@v5
+
+      # Si tu sitio es estático (solo HTML/CSS/JS) no necesitas un paso de build.
+      # Si usas Jekyll, Hugo, etc., aquí iría tu paso de build.
+      # Ejemplo:
+      # - name: 🏗️ Compilar Sitio (Si usas un generador estático)
+      #   run: npm run build # o tu comando de build
+
+      - name: 📦 Subir Artefacto
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Directorio donde están tus archivos de sitio final (ej. `_site`, `public`, o la raíz si es estático)
+          path: '.' 
+
+      - name: 🚀 Desplegar a GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      # 3. Paso de Notificación a Discord (CRUCIAL para solucionar tu problema)
+      - name: 🔔 Notificar a Discord sobre el Estado de la Compilación
+        # El 'if: always()' asegura que esta notificación se envíe sin importar si el despliegue falló o tuvo éxito.
+        if: always() 
+        uses: rjstone/discord-webhook-notify@v2.7.1
+        with:
+          # **ATENCIÓN:** DEBES haber creado este secreto en el Paso 3 del punto 3
+          webhookUrl: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          status: ${{ job.status }}
+          # Personaliza el mensaje con el estado y los enlaces
+          description: |
+            **Estado del Despliegue de Pages:** **`${{ job.status }}`**
+            Repositorio: `sMartz1/LWBuilds`
+            Rama: `${{ github.ref_name }}`
+            Ver Despliegue: ${{ steps.deployment.outputs.page_url }}
+            Ver Detalles del Job: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          color: ${{ job.status == 'success' && '00FF00' || job.status == 'failure' && 'FF0000' || 'FFFF00' }}
