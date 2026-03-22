@@ -1,0 +1,104 @@
+name: 🚀 Despliegue de GitHub Pages y Notificación a Discord
+
+# 1. Definir los eventos que disparan este workflow
+on:
+  push:
+    branches:
+      - main # Dispara el workflow cuando se haga push a la rama 'main'
+
+  # Permite ejecutar este workflow manualmente desde la pestaña Actions
+  workflow_dispatch:
+
+# 2. Definir los trabajos (jobs)
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    
+    # Define los permisos necesarios para el despliegue de Pages
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+      deployments: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: ⬇️ Checkout del Código
+        uses: actions/checkout@v4
+
+      - name: 🛠️ Configurar Páginas de GitHub
+        uses: actions/configure-pages@v5
+
+      # Si usas un generador estático (como Jekyll, Hugo, etc.), aquí iría tu paso de build.
+      # Si solo son archivos estáticos (HTML/CSS/JS), este paso no es necesario.
+      # Ejemplo:
+      # - name: 🏗️ Compilar Sitio
+      #   run: npm run build 
+
+      - name: 📦 Subir Artefacto
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Directorio donde están tus archivos de sitio final
+          path: '.' 
+
+      - name: 🚀 Desplegar a GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      # 3. Paso de Notificación a Discord (Usando sarisia/actions-status-discord)
+      - name: 🔔 Notificar a Discord sobre el Estado de la Compilación
+        if: always() 
+        uses: sarisia/actions-status-discord@v1
+        with:
+          # Usamos la URL completa del webhook. Asegúrate de que el secreto existe.
+          webhook: ${{ secrets.DISCORD_WEBHOOK_URL }} 
+          status: ${{ job.status }}
+          
+          # Título del Embed
+          title: "🚀 Despliegue de LWBuilds: ${{ job.status }}"
+          
+          # Contenido principal del Embed (Usuario y Enlaces)
+          description: |
+            **Iniciado por:** **`${{ github.actor }}`** 👤
+            
+            ---
+            
+            **Enlaces:**
+            
+            - URL de Pages: <https://smartz1.github.io/LWBuilds/>
+          
+          # Color dinámico (en formato hexadecimal 0x)
+          color: ${{ job.status == 'success' && '0x00FF00' || '0xFF0000' }}
+          username: GitHub Pages Deployer
+
+      - name: ⏳ Esperar 4 horas
+        run: sleep 3500 # 4 horas en segundos (4 * 60 * 60)
+
+      - name: 🗑️ Limpieza física de la Build
+        if: always()
+        run: |
+          git config --global user.name "GitHub Action Bot"
+          git config --global user.email "actions@github.com"
+          
+          # Borramos archivos de Unity pero PROTEGEMOS la carpeta .github y .git
+          # Esto evita que el workflow se borre a sí mismo
+          find . -maxdepth 1 ! -name '.git' ! -name '.github' ! -name '.' -exec rm -rf {} +
+          
+          echo "<h1>Esta build temporal ha expirado.</h1>" > index.html
+          
+          git add .
+          # Solo hacemos commit si hay algo que borrar (evita errores si ya está vacío)
+          git diff --quiet && git diff --staged --quiet || (git commit -m "🗑️ Cleanup: Build expirada" && git push origin main)
+
+      - name: 🔔 Notificar a Discord (Undeploy Finalizado)
+        if: always()
+        uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          title: "🗑️ La build ha sido borrada del servidor"
+          description: "Los archivos han sido eliminados de la rama main. La URL ahora mostrará un mensaje de expiración."
+          color: '0x808080'
+          username: GitHub Pages CleanUp
