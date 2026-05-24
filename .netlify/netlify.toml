@@ -1,0 +1,38 @@
+headersOrigin = "config"
+plugins = []
+redirects = []
+
+[functions]
+
+[functions."*"]
+
+[build]
+publish = "D:\\GamesGD\\LW\\Build\\LWBuilds"
+publishOrigin = "default"
+
+[build.environment]
+
+[build.processing]
+
+[build.processing.css]
+
+[build.processing.html]
+
+[build.processing.images]
+
+[build.processing.js]
+
+[build.services]
+
+[[headers]]
+for = "/Build/*.unityweb"
+
+[headers.values]
+Content-Encoding = "gzip"
+
+[[headers]]
+for = "/Build/*.wasm.unityweb"
+
+[headers.values]
+Content-Encoding = "gzip"
+Content-Type = "application/wasm"

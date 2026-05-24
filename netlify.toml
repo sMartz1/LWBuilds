@@ -1,0 +1,10 @@
+[[headers]]
+  for = "/Build/*.unityweb"
+  [headers.values]
+    Content-Encoding = "gzip"
+
+[[headers]]
+  for = "/Build/*.wasm.unityweb"
+  [headers.values]
+    Content-Encoding = "gzip"
+    Content-Type = "application/wasm"

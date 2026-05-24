@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>True Lane</title>
+  <link rel="shortcut icon" href="TemplateData/favicon.ico">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%; height: 100%;
+      background: #000;
+      overflow: hidden;
+      font-family: 'Segoe UI', Arial, sans-serif;
+    }
+
+    /* Animated gradient background */
+    #bg-gradient {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse at 20% 50%, rgba(30, 15, 60, 0.6) 0%, transparent 60%),
+                  radial-gradient(ellipse at 80% 50%, rgba(10, 25, 50, 0.5) 0%, transparent 60%),
+                  radial-gradient(ellipse at 50% 100%, rgba(20, 10, 40, 0.4) 0%, transparent 50%);
+      animation: bgShift 12s ease-in-out infinite alternate;
+      z-index: 0;
+    }
+    @keyframes bgShift {
+      0% { opacity: 0.6; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.05); }
+      100% { opacity: 0.7; transform: scale(1.02); }
+    }
+
+    /* Subtle grid overlay */
+    #bg-grid {
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+      background-size: 40px 40px;
+      z-index: 0;
+    }
+
+    /* Floating particles */
+    #particles {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .particle {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      animation: float linear infinite;
+    }
+    @keyframes float {
+      0% { transform: translateY(100vh) scale(0); opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+    }
+
+    #page-wrapper {
+      position: relative;
+      display: flex;
+      flex-direction: row;
+      width: 100%; height: 100%;
+      z-index: 2;
+    }
+    #unity-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      overflow: hidden;
+    }
+    #unity-canvas {
+      height: 100%;
+      aspect-ratio: 9 / 16;
+      max-width: 100%;
+      background: #111;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      box-shadow: 0 0 15px 2px rgba(100, 120, 255, 0.15), 0 0 40px 5px rgba(100, 120, 255, 0.08);
+      animation: canvasGlow 4s ease-in-out infinite alternate;
+    }
+    @keyframes canvasGlow {
+      0% { box-shadow: 0 0 15px 2px rgba(100, 120, 255, 0.1), 0 0 40px 5px rgba(100, 120, 255, 0.05); }
+      100% { box-shadow: 0 0 20px 4px rgba(120, 100, 255, 0.2), 0 0 60px 10px rgba(100, 120, 255, 0.1); }
+    }
+    #unity-loading-bar {
+      position: absolute;
+      left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      display: none;
+      z-index: 10;
+    }
+    #unity-logo {
+      width: 154px; height: 130px;
+      background: url('TemplateData/unity-logo-dark.png') no-repeat center;
+    }
+    #unity-progress-bar-empty {
+      width: 141px; height: 18px;
+      margin-top: 10px; margin-left: 6.5px;
+      background: url('TemplateData/progress-bar-empty-dark.png') no-repeat center;
+    }
+    #unity-progress-bar-full {
+      width: 0%; height: 18px; margin-top: 10px;
+      background: url('TemplateData/progress-bar-full-dark.png') no-repeat center;
+    }
+    #unity-warning {
+      position: absolute; left: 50%; top: 5%;
+      transform: translate(-50%);
+      background: white; padding: 10px;
+      display: none; z-index: 20;
+    }
+
+    #build-info {
+      position: absolute;
+      bottom: 12px; right: 16px;
+      text-align: right;
+      z-index: 5;
+      pointer-events: none;
+    }
+    #build-info .title {
+      font-size: 104px;
+      font-weight: 700;
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      color: rgba(180, 160, 255, 0.4);
+      text-shadow: 0 0 25px rgba(120, 100, 255, 0.2), 0 0 50px rgba(120, 100, 255, 0.08);
+      margin-bottom: 6px;
+      animation: textPulse 4s ease-in-out infinite alternate;
+    }
+    @keyframes textPulse {
+      0% { text-shadow: 0 0 20px rgba(120, 100, 255, 0.3), 0 0 40px rgba(120, 100, 255, 0.1); }
+      100% { text-shadow: 0 0 30px rgba(120, 100, 255, 0.5), 0 0 60px rgba(120, 100, 255, 0.2); }
+    }
+    #build-info .label {
+      font-size: 44px;
+      font-weight: 600;
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      color: rgba(140, 180, 255, 0.5);
+      border-bottom: 1px solid rgba(120, 100, 255, 0.2);
+      padding-bottom: 4px;
+      margin-bottom: 4px;
+      text-shadow: 0 0 10px rgba(100, 140, 255, 0.2);
+    }
+    #build-info .version {
+      font-size: 56px;
+      font-weight: 300;
+      letter-spacing: 4px;
+      color: rgba(140, 160, 255, 0.4);
+      font-variant-numeric: tabular-nums;
+      text-shadow: 0 0 8px rgba(100, 120, 255, 0.15);
+    }
+
+    @media (max-width: 600px) {
+      #page-wrapper { flex-direction: column; }
+      #sidebar { padding: 6px 0; }
+      #sidebar h1 {
+        font-size: 16px;
+        letter-spacing: 3px;
+      }
+      #unity-canvas {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 9 / 16;
+        max-height: calc(100vh - 36px);
+      }
+    }
+
+    /* Privacy consent modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      animation: fadeIn 0.4s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .modal {
+      max-width: 520px;
+      width: calc(100% - 40px);
+      padding: 32px 36px;
+      background: linear-gradient(160deg, rgba(30, 20, 60, 0.95) 0%, rgba(15, 20, 45, 0.95) 100%);
+      border: 1px solid rgba(140, 120, 255, 0.25);
+      border-radius: 14px;
+      box-shadow: 0 0 30px rgba(120, 100, 255, 0.25), 0 0 80px rgba(120, 100, 255, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      color: rgba(230, 230, 250, 0.92);
+      animation: modalIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes modalIn {
+      from { opacity: 0; transform: translateY(20px) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .modal h2 {
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: rgba(180, 160, 255, 0.95);
+      margin-bottom: 18px;
+      text-shadow: 0 0 20px rgba(120, 100, 255, 0.4);
+    }
+    .modal p {
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 14px;
+      color: rgba(220, 220, 240, 0.85);
+    }
+    .modal ul {
+      list-style: none;
+      margin: 12px 0 18px 0;
+    }
+    .modal ul li {
+      font-size: 13px;
+      line-height: 1.7;
+      padding-left: 22px;
+      position: relative;
+      color: rgba(200, 210, 240, 0.85);
+    }
+    .modal ul li::before {
+      content: "";
+      position: absolute;
+      left: 6px;
+      top: 10px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(140, 120, 255, 0.7);
+      box-shadow: 0 0 8px rgba(140, 120, 255, 0.6);
+    }
+    .modal .footnote {
+      font-size: 12px;
+      color: rgba(180, 180, 210, 0.6);
+      font-style: italic;
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(140, 120, 255, 0.12);
+    }
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+      justify-content: flex-end;
+    }
+    .modal-actions button {
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 11px 22px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+    }
+    #privacy-decline {
+      background: transparent;
+      color: rgba(200, 200, 220, 0.7);
+      border-color: rgba(200, 200, 220, 0.2);
+    }
+    #privacy-decline:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: rgba(230, 230, 240, 0.9);
+      border-color: rgba(200, 200, 220, 0.35);
+    }
+    #privacy-accept {
+      background: linear-gradient(135deg, rgba(120, 100, 255, 0.85) 0%, rgba(80, 120, 220, 0.85) 100%);
+      color: white;
+      box-shadow: 0 0 18px rgba(120, 100, 255, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    }
+    #privacy-accept:hover {
+      box-shadow: 0 0 28px rgba(140, 120, 255, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      transform: translateY(-1px);
+    }
+
+    /* Decline screen */
+    #privacy-declined {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
+    .declined-content {
+      max-width: 440px;
+      width: calc(100% - 40px);
+      padding: 36px;
+      text-align: center;
+      color: rgba(230, 230, 250, 0.88);
+    }
+    .declined-content h2 {
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: rgba(220, 160, 180, 0.9);
+      margin-bottom: 18px;
+    }
+    .declined-content p {
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 10px;
+      color: rgba(210, 210, 230, 0.75);
+    }
+    .declined-content .reload-hint {
+      margin-top: 22px;
+      font-size: 12px;
+      color: rgba(180, 180, 210, 0.55);
+    }
+    .declined-content button {
+      margin-top: 20px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 10px 22px;
+      border-radius: 8px;
+      cursor: pointer;
+      background: transparent;
+      color: rgba(180, 180, 210, 0.7);
+      border: 1px solid rgba(180, 180, 210, 0.3);
+      transition: all 0.2s ease;
+    }
+    .declined-content button:hover {
+      color: rgba(230, 230, 250, 0.95);
+      border-color: rgba(140, 120, 255, 0.5);
+      box-shadow: 0 0 16px rgba(120, 100, 255, 0.25);
+    }
+  </style>
+</head>
+<body>
+  <div id="bg-gradient"></div>
+  <div id="bg-grid"></div>
+  <div id="particles"></div>
+
+  <div id="privacy-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="privacy-title">
+    <div class="modal">
+      <h2 id="privacy-title">Privacy notice</h2>
+      <p>This is a private testing build. When you validate your access code, the following data is logged so we can audit how the code is being used:</p>
+      <ul>
+        <li>IP address and approximate location (country, city)</li>
+        <li>Browser, operating system and device type</li>
+        <li>Language, time zone and screen resolution</li>
+        <li>Player name you enter at the access gate</li>
+      </ul>
+      <p>This data is used solely to detect misuse of the access code and is not shared with third parties.</p>
+      <p class="footnote">By continuing you accept the processing of this data. Your choice will be remembered in this browser.</p>
+      <div class="modal-actions">
+        <button id="privacy-decline" type="button">Decline</button>
+        <button id="privacy-accept" type="button">Accept and play</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="privacy-declined">
+    <div class="declined-content">
+      <h2>Access declined</h2>
+      <p>You have declined the privacy notice.</p>
+      <p>The game will not load until you accept the data processing described above.</p>
+      <button id="privacy-reconsider" type="button">Review the notice</button>
+      <p class="reload-hint">Or refresh the page to start over.</p>
+    </div>
+  </div>
+
+  <div id="page-wrapper">
+    <div id="unity-container">
+      <canvas id="unity-canvas" tabindex="-1"></canvas>
+      <div id="unity-loading-bar">
+        <div id="unity-logo"></div>
+        <div id="unity-progress-bar-empty">
+          <div id="unity-progress-bar-full"></div>
+        </div>
+      </div>
+      <div id="unity-warning"></div>
+    </div>
+    <div id="build-info">
+      <div class="title">True Lane</div>
+      <div class="label">Testing Lab</div>
+      <div class="version">v0.1.25 &middot; #26</div>
+    </div>
+  </div>
+
+  <script>
+    var canvas = document.querySelector('#unity-canvas');
+    var loadingBar = document.querySelector('#unity-loading-bar');
+    var progressBarFull = document.querySelector('#unity-progress-bar-full');
+    var warningBanner = document.querySelector('#unity-warning');
+
+    function unityShowBanner(msg, type) {
+      var div = document.createElement('div');
+      div.innerHTML = msg;
+      warningBanner.appendChild(div);
+      if (type == 'error') div.style = 'background: red; padding: 10px;';
+      else {
+        if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
+        setTimeout(function() {
+          warningBanner.removeChild(div);
+          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+        }, 5000);
+      }
+      warningBanner.style.display = 'block';
+    }
+
+    var buildUrl = 'Build';
+    var loaderUrl = buildUrl + '/LWBuilds.loader.js';
+    var config = {
+      dataUrl: buildUrl + '/LWBuilds.data.unityweb',
+      frameworkUrl: buildUrl + '/LWBuilds.framework.js.unityweb',
+      codeUrl: buildUrl + '/LWBuilds.wasm.unityweb',
+      streamingAssetsUrl: 'StreamingAssets',
+      companyName: 'DefaultCompany',
+      productName: 'LW',
+      productVersion: '0.1.0',
+      showBanner: unityShowBanner,
+    };
+
+    var PRIVACY_KEY = 'lw_privacy_consent_v1';
+    var unityStarted = false;
+
+    function loadUnity() {
+      if (unityStarted) return;
+      unityStarted = true;
+      loadingBar.style.display = 'block';
+      var script = document.createElement('script');
+      script.src = loaderUrl;
+      script.onload = function() {
+        createUnityInstance(canvas, config, function(progress) {
+          progressBarFull.style.width = 100 * progress + '%';
+        }).then(function(unityInstance) {
+          loadingBar.style.display = 'none';
+          // Pause background animations to free GPU for the game
+          document.getElementById('bg-gradient').style.animation = 'none';
+          document.getElementById('particles').style.display = 'none';
+        }).catch(function(message) {
+          alert(message);
+        });
+      };
+      document.body.appendChild(script);
+    }
+
+    function showPrivacyModal() {
+      document.getElementById('privacy-modal').style.display = 'flex';
+      document.getElementById('privacy-declined').style.display = 'none';
+    }
+
+    function showDeclined() {
+      document.getElementById('privacy-modal').style.display = 'none';
+      document.getElementById('privacy-declined').style.display = 'flex';
+    }
+
+    function readConsent() {
+      try { return localStorage.getItem(PRIVACY_KEY); }
+      catch (e) { return null; }
+    }
+    function writeConsent(value) {
+      try { localStorage.setItem(PRIVACY_KEY, value); }
+      catch (e) { /* localStorage blocked — fall back to in-memory only */ }
+    }
+
+    document.getElementById('privacy-accept').addEventListener('click', function() {
+      writeConsent('accepted');
+      document.getElementById('privacy-modal').style.display = 'none';
+      loadUnity();
+    });
+    document.getElementById('privacy-decline').addEventListener('click', function() {
+      showDeclined();
+    });
+    document.getElementById('privacy-reconsider').addEventListener('click', function() {
+      showPrivacyModal();
+    });
+
+    if (readConsent() === 'accepted') {
+      loadUnity();
+    } else {
+      showPrivacyModal();
+    }
+
+    // Generate particles
+    var particlesEl = document.getElementById('particles');
+    for (var i = 0; i < 10; i++) {
+      var p = document.createElement('div');
+      p.className = 'particle';
+      p.style.left = Math.random() * 100 + '%';
+      p.style.animationDuration = (8 + Math.random() * 16) + 's';
+      p.style.animationDelay = (Math.random() * 20) + 's';
+      p.style.width = p.style.height = (1 + Math.random() * 2) + 'px';
+      particlesEl.appendChild(p);
+    }
+  </script>
+</body>
+</html>
